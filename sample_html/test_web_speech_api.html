@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Web Speech API</title>
+
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <!-- Material Design Lite -->
+  <link rel="stylesheet" href="https://storage.googleapis.com/code.getmdl.io/1.0.0/material.indigo-pink.min.css">
+  <script src="https://storage.googleapis.com/code.getmdl.io/1.0.0/material.min.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+  <script>
+    debugger;
+    var postMessage = function (message) {
+      var url = "http://127.0.0.1:8080/imart/logic/api/schedule/register-newly-from-message";
+      var html = '<form method="post" action="' + url + '" id="form" style="display: none;">' +
+        '<input type="hidden" name="message" value="' + message + '" >' +
+        '</form>';
+      $('body').append(html);
+      $('#form').submit();
+    }
+
+    //Web Speech API呼び出し
+    window.SpeechRecognition = window.SpeechRecognition || webkitSpeechRecognition;
+    var recognition = new SpeechRecognition();
+    recognition.lang = 'ja';
+
+    // 録音終了時の処理
+    recognition.addEventListener('result', function (e) {
+      debugger;
+      $('.start').val('音声入力開始');
+
+      console.log(e);
+      var text = e.results[0][0].transcript;
+      var dialog = document.querySelector('dialog');
+      dialog.showModal();
+      $("#result").text(text);
+
+      // agree
+      dialog.querySelector('.agree').addEventListener('click', function () {
+        postMessage(text);
+      });
+      // disagree
+      dialog.querySelector('.disagree').addEventListener('click', function () {
+        dialog.close();
+      });
+    }, false);
+
+    // 録音開始したときの処理
+    function record() {
+      debugger;
+      $('.start').val('録音中です！');
+      recognition.start();
+    }
+  </script>
+</head>
+
+<body>
+
+  <dialog class="mdl-dialog">
+    <div class="mdl-dialog__content">
+      <p>
+        以下の内容でスケジュール登録します。<br>よろしいですか？<br>
+        <br>
+        <textarea id="result" class="mdl-textfield__input" rows="7" style="background-color:#FFFFDD;" disabled></textarea>
+      </p>
+    </div>
+    <div class="mdl-dialog__actions mdl-dialog__actions--full-width">
+      <button type="button" class="mdl-button agree">Agree</button>
+      <button type="button" class="mdl-button disagree">Disagree</button>
+    </div>
+  </dialog>
+
+  <div style="margin:50px;">
+    <p>
+      Web Speech API を利用して、音声をテキスト化。<br> これをREST API化したロジックに渡し、スケジュール登録を行います。
+    </p>
+
+    <input type="button" onClick="record()" value="音声入力開始" class="start mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect"
+    />
+
+  </div>
+</body>
+
+</html>
